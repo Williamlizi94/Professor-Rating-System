@@ -1,0 +1,55 @@
+# De Anza College Professors API - 完整依赖列表
+# 
+# 安装方法:
+#   pip install -r requirements.txt
+#
+# 或使用国内镜像源（推荐）:
+#   pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# ============================================
+# Web框架和服务器
+# ============================================
+# FastAPI - 现代、快速的Web框架，用于构建RESTful API
+fastapi==0.104.1
+
+# Uvicorn - ASGI服务器，用于运行FastAPI应用
+# [standard] 包含额外的高性能依赖（httptools, uvloop等）
+uvicorn[standard]==0.24.0
+
+# ============================================
+# HTTP请求库
+# ============================================
+# Requests - HTTP库，用于数据抓取和API调用
+# 用于 DeAnza_AllProfessors.py 数据抓取
+# 用于 update_data.py API调用
+requests>=2.31.0
+
+# ============================================
+# 说明
+# ============================================
+# 
+# 标准库（Python内置，无需安装）:
+#   - re (正则表达式)
+#   - json (JSON处理)
+#   - time (时间处理)
+#   - csv (CSV文件处理)
+#   - typing (类型提示)
+#   - subprocess (子进程管理)
+#   - sys (系统相关)
+#   - os (操作系统接口)
+#   - datetime (日期时间)
+#   - signal (信号处理)
+#
+# 可选依赖（如果需要）:
+#   - python-dotenv (环境变量管理，已在uvicorn[standard]中包含)
+#   - python-multipart (文件上传支持，FastAPI可选)
+#
+# ============================================
+# 版本说明
+# ============================================
+# 
+# Python版本要求: Python 3.8+
+# 推荐版本: Python 3.10 或 3.12
+#
+# 所有依赖都已测试兼容，建议使用指定版本以保证稳定性
+

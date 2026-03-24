@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professor List - College Professors</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .main-container {
+            padding: 2rem 0;
+        }
+
+        .hero-section {
+            text-align: center;
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .hero-section h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .filter-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .professor-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+        }
+
+        .professor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .professor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .professor-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .department-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .rating-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .rating-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rating-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .rating-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 1.1rem;
+        }
+
+        .review-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .review-card:hover {
+            background: #e9ecef;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .review-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .review-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .review-meta-item i {
+            color: var(--secondary-color);
+            width: 16px;
+        }
+
+        .review-meta-item .label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .review-meta-item .value {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .badge-custom {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .review-comment {
+            color: #333;
+            line-height: 1.7;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .info-badge {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .info-badge .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .info-badge .label {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        .school-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+        .school-badge.deanza { background: #d4edda; color: #155724; }
+        .school-badge.ucsd   { background: #cce5ff; color: #004085; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-university text-primary"></i> College Professors
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/departments">
+                            <i class="fas fa-building"></i> Departments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/stats">
+                            <i class="fas fa-chart-bar"></i> Statistics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs" target="_blank">
+                            <i class="fas fa-code"></i> API Docs
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <h1><i class="fas fa-users"></i> Professor List</h1>
+            <p id="pageSubtitle">Browse all professor information</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container main-container">
+        <!-- Info Badge -->
+        <div class="info-badge" id="infoBadge" style="display: none;">
+            <div class="number" id="totalCount">0</div>
+            <div class="label" id="infoLabel">Professors Found</div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingDiv" style="text-align: center; color: white; padding: 3rem;">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading data...</p>
+        </div>
+
+        <!-- Results -->
+        <div id="resultsDiv"></div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper" id="paginationDiv" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '';
+        let currentPage = 1;
+        let currentLimit = 20;
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const schoolParam = urlParams.get('school') ? `&school=${urlParams.get('school')}` : '';
+        const pageType = getPageType();
+        const nameParam = urlParams.get('name');
+        const departmentParam = urlParams.get('department');
+        const searchParam = urlParams.get('q');
+
+        function getPageType() {
+            const path = window.location.pathname;
+            if (path.includes('/professors/name/')) return 'name';
+            if (path.includes('/professors/department/')) return 'department';
+            if (path.includes('/search')) return 'search';
+            return 'list';
+        }
+
+        function getProfessorName() {
+            const path = window.location.pathname;
+            const match = path.match(/\/professors\/name\/(.+)$/);
+            if (match) {
+                try {
+                    return decodeURIComponent(match[1].replace(/\+/g, ' '));
+                } catch (e) {
+                    return match[1];
+                }
+            }
+            return null;
+        }
+
+        function getDepartmentName() {
+            const path = window.location.pathname;
+            const match = path.match(/\/professors\/department\/(.+)$/);
+            if (match) {
+                try {
+                    return decodeURIComponent(match[1].replace(/\+/g, ' '));
+                } catch (e) {
+                    return match[1];
+                }
+            }
+            return null;
+        }
+
+        async function loadProfessors(page = 1) {
+            currentPage = page;
+            document.getElementById('loadingDiv').style.display = 'block';
+            document.getElementById('resultsDiv').innerHTML = '';
+            document.getElementById('paginationDiv').style.display = 'none';
+            document.getElementById('infoBadge').style.display = 'none';
+
+            try {
+                let url = '';
+                let subtitle = '';
+
+                if (pageType === 'name') {
+                    const name = getProfessorName();
+                    url = `${API_BASE}/professors/name/${encodeURIComponent(name)}?format=json${schoolParam}`;
+                    subtitle = `Search: ${name}`;
+                } else if (pageType === 'department') {
+                    const dept = getDepartmentName();
+                    url = `${API_BASE}/professors/department/${encodeURIComponent(dept)}?format=json&page=${page}&limit=${currentLimit}${schoolParam}`;
+                    subtitle = `Department: ${dept}`;
+                } else if (pageType === 'search') {
+                    const query = searchParam || urlParams.get('q') || '';
+                    url = `${API_BASE}/search?q=${encodeURIComponent(query)}&page=${page}&limit=${currentLimit}&format=json${schoolParam}`;
+                    subtitle = `Search: ${query}`;
+                } else {
+                    const dept = departmentParam || '';
+                    const minRating = urlParams.get('min_rating') || '';
+                    const maxDifficulty = urlParams.get('max_difficulty') || '';
+                    url = `${API_BASE}/professors?page=${page}&limit=${currentLimit}&format=json${schoolParam}`;
+                    if (dept) url += `&department=${encodeURIComponent(dept)}`;
+                    if (minRating) url += `&min_rating=${minRating}`;
+                    if (maxDifficulty) url += `&max_difficulty=${maxDifficulty}`;
+                    subtitle = 'All Professors';
+                }
+
+                if (subtitle) {
+                    document.getElementById('pageSubtitle').textContent = subtitle;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                displayResults(data);
+            } catch (error) {
+                console.error('Error loading professors:', error);
+                document.getElementById('resultsDiv').innerHTML = `
+                    <div class="empty-state" style="text-align: center; padding: 3rem; color: white;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Error loading data, please try again later</p>
+                    </div>
+                `;
+            } finally {
+                document.getElementById('loadingDiv').style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('resultsDiv');
+            const professors = data.data || [];
+
+            if (professors.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="empty-state" style="text-align: center; padding: 3rem; color: white;">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>No matching professors found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Update info badge
+            const total = data.total || professors.length;
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('infoLabel').textContent = `Found ${total} professors`;
+            document.getElementById('infoBadge').style.display = 'block';
+
+            let html = '';
+            professors.forEach(prof => {
+                html += createProfessorCard(prof);
+            });
+            resultsDiv.innerHTML = html;
+
+            // Pagination
+            if (data.total_pages > 1) {
+                createPagination(data.page, data.total_pages);
+                document.getElementById('paginationDiv').style.display = 'block';
+            }
+        }
+
+        function createProfessorCard(prof) {
+            const rating = parseFloat(prof.Average_Rating) || 0;
+            const difficulty = parseFloat(prof.Average_Difficulty) || 0;
+            const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+
+            let reviewsHtml = '';
+            if (prof.Latest_Reviews && prof.Latest_Reviews.length > 0) {
+                prof.Latest_Reviews.slice(0, 5).forEach(review => {
+                    const qualityRating = parseFloat(review.Quality_Rating) || 0;
+                    const difficultyRating = parseFloat(review.Difficulty_Rating) || 0;
+                    const qualityStars = '★'.repeat(Math.round(qualityRating)) + '☆'.repeat(5 - Math.round(qualityRating));
+                    const difficultyStars = '★'.repeat(Math.round(difficultyRating)) + '☆'.repeat(5 - Math.round(difficultyRating));
+
+                    reviewsHtml += `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div>
+                                    <strong style="font-size: 1.1rem; color: var(--primary-color);">
+                                        <i class="fas fa-book"></i> ${review.Class || 'N/A'}
+                                    </strong>
+                                </div>
+                                <span class="review-date">
+                                    <i class="fas fa-calendar"></i> ${formatDate(review.Date)}
+                                </span>
+                            </div>
+
+                            <div class="review-meta">
+                                <div class="review-meta-item">
+                                    <i class="fas fa-star"></i>
+                                    <span class="label">Quality:</span>
+                                    <span class="value">${qualityRating.toFixed(1)}</span>
+                                    <span class="stars">${qualityStars}</span>
+                                </div>
+                                <div class="review-meta-item">
+                                    <i class="fas fa-sliders-h"></i>
+                                    <span class="label">Difficulty:</span>
+                                    <span class="value">${difficultyRating.toFixed(1)}</span>
+                                    <span class="stars">${difficultyStars}</span>
+                                </div>
+                                <div class="review-meta-item">
+                                    <i class="fas fa-globe"></i>
+                                    <span class="label">${review.Is_Online_Class === 'Yes' ? 'Online' : 'In-Person'}</span>
+                                </div>
+                                <div class="review-meta-item">
+                                    <i class="fas fa-redo"></i>
+                                    <span class="badge-custom ${review.Would_Take_Again === 'Yes' ? 'badge-success' : 'badge-danger'}">
+                                        ${review.Would_Take_Again === 'Yes' ? 'Would Take Again' : 'Would Not Take Again'}
+                                    </span>
+                                </div>
+                                ${review.Grade ? `
+                                <div class="review-meta-item">
+                                    <i class="fas fa-trophy"></i>
+                                    <span class="badge-custom badge-info">${review.Grade}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="review-comment">
+                                <i class="fas fa-comment-dots" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
+                                ${review.Comment || 'No comment'}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                reviewsHtml = '<p class="text-muted"><i class="fas fa-info-circle"></i> No reviews yet</p>';
+            }
+
+            return `
+                <div class="professor-card">
+                    <div class="professor-header">
+                        <div>
+                            <div class="professor-name">${prof.Full_Name || 'Unknown'}</div>
+                            <span class="department-badge">${prof.Department || 'Unknown Department'}</span>
+                            ${prof.School === 'ucsd' ? '<span class="school-badge ucsd">UC San Diego</span>' : (prof.School === 'deanza' ? '<span class="school-badge deanza">De Anza</span>' : '')}
+                        </div>
+                    </div>
+                    <div class="rating-info">
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${rating.toFixed(1)}</div>
+                                <div class="stars">${stars}</div>
+                                <div class="rating-label">Avg Rating</div>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${difficulty.toFixed(1)}</div>
+                                <div class="rating-label">Difficulty</div>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${prof.Num_Ratings || 0}</div>
+                                <div class="rating-label">Reviews</div>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${prof.Would_Take_Again_Percent || '0.00'}%</div>
+                                <div class="rating-label">Would Take Again</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h6 style="color: var(--primary-color); margin-bottom: 1rem;">
+                            <i class="fas fa-comments"></i> Latest Reviews (${prof.Latest_Reviews ? Math.min(prof.Latest_Reviews.length, 5) : 0}):
+                        </h6>
+                        ${reviewsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createPagination(currentPage, totalPages) {
+            const paginationDiv = document.getElementById('paginationDiv');
+            let html = '<nav><ul class="pagination">';
+
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadProfessors(${currentPage - 1}); return false;">Previous</a>
+            </li>`;
+
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadProfessors(1); return false;">1</a></li>`;
+                if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="loadProfessors(${i}); return false;">${i}</a>
+                </li>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadProfessors(${totalPages}); return false;">${totalPages}</a></li>`;
+            }
+
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadProfessors(${currentPage + 1}); return false;">Next</a>
+            </li>`;
+
+            html += '</ul></nav>';
+            paginationDiv.innerHTML = html;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown Date';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        window.onload = function() {
+            loadProfessors(1);
+        };
+    </script>
+</body>
+</html>

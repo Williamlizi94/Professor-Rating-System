@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Professors - Rating System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --background: #f8f9fa;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .main-container {
+            padding: 2rem 0;
+        }
+
+        .hero-section {
+            text-align: center;
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .professor-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+        }
+
+        .professor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .professor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .professor-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .department-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .rating-info {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .rating-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rating-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .rating-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 1.1rem;
+        }
+
+        .review-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--secondary-color);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .review-card:hover {
+            background: #e9ecef;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .review-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .review-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .review-meta-item i {
+            color: var(--secondary-color);
+            width: 16px;
+        }
+
+        .review-meta-item .label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .review-meta-item .value {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .review-comment {
+            color: #333;
+            line-height: 1.7;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .review-ratings {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .review-rating-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge-custom {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .btn-search:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #5dade2, var(--secondary-color));
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn-reset:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #5a6268, #6c757d);
+            color: white;
+        }
+
+        .stats-badge {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1rem;
+        }
+
+        .stats-badge .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stats-badge .label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            opacity: 0.5;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .school-btn-group .btn {
+            border-radius: 0;
+        }
+        .school-btn-group .btn:first-child { border-radius: 25px 0 0 25px; }
+        .school-btn-group .btn:last-child  { border-radius: 0 25px 25px 0; }
+        .school-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+        .school-badge.deanza { background: #d4edda; color: #155724; }
+        .school-badge.ucsd   { background: #cce5ff; color: #004085; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="fas fa-university text-primary"></i> College Professors
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showHome(); return false;">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs" target="_blank">
+                            <i class="fas fa-code"></i> API Docs
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Professor Rating System</h1>
+            <p id="heroSubtitle">Find and view ratings and reviews from De Anza College &amp; UC San Diego</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container main-container">
+        <!-- Search Card -->
+        <div class="search-card">
+            <!-- School Selector -->
+            <div class="filter-group mb-3">
+                <label class="form-label"><i class="fas fa-university"></i> School</label>
+                <div class="btn-group school-btn-group d-flex" role="group">
+                    <button type="button" class="btn btn-primary active" id="btn-all" onclick="setSchool('')">All Schools</button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-deanza" onclick="setSchool('deanza')">De Anza College</button>
+                    <button type="button" class="btn btn-outline-primary" id="btn-ucsd" onclick="setSchool('ucsd')">UC San Diego</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="filter-group">
+                        <label class="form-label"><i class="fas fa-search"></i> Search Professors</label>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Enter professor name or department...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label"><i class="fas fa-star"></i> Min Rating</label>
+                        <input type="number" class="form-control" id="minRating" min="0" max="5" step="0.1" placeholder="0.0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label"><i class="fas fa-sliders-h"></i> Max Difficulty</label>
+                        <input type="number" class="form-control" id="maxDifficulty" min="0" max="5" step="0.1" placeholder="5.0">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="filter-group">
+                        <label class="form-label"><i class="fas fa-building"></i> Department</label>
+                        <select class="form-select" id="departmentSelect">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary btn-search w-100" onclick="searchProfessors()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-secondary btn-reset w-100" onclick="resetFilters()">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row" id="statsSection" style="display: none;">
+            <div class="col-md-3">
+                <div class="stats-badge">
+                    <div class="number" id="totalProfessors">0</div>
+                    <div class="label">Total Professors</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-badge">
+                    <div class="number" id="avgRating">0.0</div>
+                    <div class="label">Avg Rating</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-badge">
+                    <div class="number" id="totalReviews">0</div>
+                    <div class="label">Total Reviews</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-badge">
+                    <div class="number" id="totalDepartments">0</div>
+                    <div class="label">Departments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingDiv" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p class="mt-3">Loading...</p>
+        </div>
+
+        <!-- Results -->
+        <div id="resultsDiv"></div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper" id="paginationDiv" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentPage = 1;
+        let currentLimit = 20;
+        let currentFilters = {};
+        let currentSchool = '';
+
+        const SCHOOL_LABELS = {
+            '': 'All Schools',
+            'deanza': 'De Anza College',
+            'ucsd': 'UC San Diego'
+        };
+        const HERO_SUBTITLES = {
+            '': 'Find and view ratings and reviews from De Anza College &amp; UC San Diego',
+            'deanza': 'Find and view ratings and reviews of De Anza College professors',
+            'ucsd': 'Find and view ratings and reviews of UC San Diego professors'
+        };
+
+        function setSchool(school) {
+            currentSchool = school;
+            ['all', 'deanza', 'ucsd'].forEach(s => {
+                const id = 'btn-' + (s === '' ? 'all' : s);
+                const btn = document.getElementById(id === 'btn-' ? 'btn-all' : id);
+                if (btn) btn.className = btn.className.replace(/btn-primary|btn-outline-primary/g, '');
+            });
+            document.getElementById('btn-all').className    = 'btn ' + (school === ''       ? 'btn-primary active' : 'btn-outline-primary');
+            document.getElementById('btn-deanza').className = 'btn ' + (school === 'deanza' ? 'btn-primary active' : 'btn-outline-primary');
+            document.getElementById('btn-ucsd').className   = 'btn ' + (school === 'ucsd'   ? 'btn-primary active' : 'btn-outline-primary');
+            document.getElementById('heroSubtitle').innerHTML = HERO_SUBTITLES[school];
+            // Reload department list (clear + repopulate)
+            const sel = document.getElementById('departmentSelect');
+            sel.innerHTML = '<option value="">All Departments</option>';
+            loadDepartments();
+            loadStats();
+            searchProfessors(1);
+        }
+
+        function schoolParam() {
+            return currentSchool ? `&school=${currentSchool}` : '';
+        }
+
+        // Load departments on page load
+        window.onload = function() {
+            // Check for school param in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const schoolFromUrl = urlParams.get('school') || '';
+            const deptFromUrl = urlParams.get('department') || '';
+            if (schoolFromUrl) {
+                currentSchool = schoolFromUrl;
+                document.getElementById('btn-all').className    = 'btn ' + (schoolFromUrl === ''       ? 'btn-primary active' : 'btn-outline-primary');
+                document.getElementById('btn-deanza').className = 'btn ' + (schoolFromUrl === 'deanza' ? 'btn-primary active' : 'btn-outline-primary');
+                document.getElementById('btn-ucsd').className   = 'btn ' + (schoolFromUrl === 'ucsd'   ? 'btn-primary active' : 'btn-outline-primary');
+                document.getElementById('heroSubtitle').innerHTML = HERO_SUBTITLES[schoolFromUrl];
+            }
+            if (deptFromUrl) {
+                // Will be selected after departments load
+                window._pendingDept = deptFromUrl;
+            }
+            loadDepartments();
+            loadStats();
+            searchProfessors();
+        };
+
+        async function loadDepartments() {
+            try {
+                const response = await fetch(`${API_BASE}/departments?format=json${schoolParam()}`);
+                const data = await response.json();
+                const select = document.getElementById('departmentSelect');
+                data.departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept;
+                    option.textContent = dept;
+                    select.appendChild(option);
+                });
+                if (window._pendingDept) {
+                    select.value = window._pendingDept;
+                    window._pendingDept = null;
+                    searchProfessors(1);
+                }
+            } catch (error) {
+                console.error('Error loading departments:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats?format=json${schoolParam()}`);
+                const data = await response.json();
+                document.getElementById('totalProfessors').textContent = data.total_professors || 0;
+                document.getElementById('avgRating').textContent = (data.ratings?.average || 0).toFixed(1);
+                document.getElementById('totalReviews').textContent = data.total_reviews || 0;
+                document.getElementById('totalDepartments').textContent = data.departments?.count || 0;
+                document.getElementById('statsSection').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function searchProfessors(page = 1) {
+            currentPage = page;
+            const searchQuery = document.getElementById('searchInput').value.trim();
+            const department = document.getElementById('departmentSelect').value;
+            const minRating = document.getElementById('minRating').value;
+            const maxDifficulty = document.getElementById('maxDifficulty').value;
+
+            document.getElementById('loadingDiv').style.display = 'block';
+            document.getElementById('resultsDiv').innerHTML = '';
+            document.getElementById('paginationDiv').style.display = 'none';
+
+            try {
+                let response;
+                if (searchQuery) {
+                    // Use search endpoint
+                    response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=${currentLimit}&format=json${schoolParam()}`);
+                } else {
+                    // Use professors endpoint with filters
+                    let url = `${API_BASE}/professors?page=${page}&limit=${currentLimit}&format=json${schoolParam()}`;
+                    if (department) url += `&department=${encodeURIComponent(department)}`;
+                    if (minRating) url += `&min_rating=${minRating}`;
+                    if (maxDifficulty) url += `&max_difficulty=${maxDifficulty}`;
+                    response = await fetch(url);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Error searching professors:', error);
+                document.getElementById('resultsDiv').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading data, please try again later</p>
+                    </div>
+                `;
+            } finally {
+                document.getElementById('loadingDiv').style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('resultsDiv');
+            const professors = data.data || [];
+
+            if (professors.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>No matching professors found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            professors.forEach(prof => {
+                html += createProfessorCard(prof);
+            });
+            resultsDiv.innerHTML = html;
+
+            // Pagination
+            if (data.total_pages > 1) {
+                createPagination(data.page, data.total_pages);
+                document.getElementById('paginationDiv').style.display = 'block';
+            }
+        }
+
+        function createProfessorCard(prof) {
+            const rating = parseFloat(prof.Average_Rating) || 0;
+            const difficulty = parseFloat(prof.Average_Difficulty) || 0;
+            const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+
+            let reviewsHtml = '';
+            if (prof.Latest_Reviews && prof.Latest_Reviews.length > 0) {
+                prof.Latest_Reviews.slice(0, 5).forEach(review => {
+                    const qualityRating = parseFloat(review.Quality_Rating) || 0;
+                    const difficultyRating = parseFloat(review.Difficulty_Rating) || 0;
+                    const qualityStars = '★'.repeat(Math.round(qualityRating)) + '☆'.repeat(5 - Math.round(qualityRating));
+                    const difficultyStars = '★'.repeat(Math.round(difficultyRating)) + '☆'.repeat(5 - Math.round(difficultyRating));
+
+                    reviewsHtml += `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div>
+                                    <strong style="font-size: 1.1rem; color: var(--primary-color);">
+                                        <i class="fas fa-book"></i> ${review.Class || 'N/A'}
+                                    </strong>
+                                </div>
+                                <span class="review-date">
+                                    <i class="fas fa-calendar"></i> ${formatDate(review.Date)}
+                                </span>
+                            </div>
+
+                            <div class="review-ratings">
+                                <div class="review-rating-item">
+                                    <span class="rating-label">Quality:</span>
+                                    <span class="rating-value" style="color: var(--success-color);">${qualityRating.toFixed(1)}</span>
+                                    <span class="stars">${qualityStars}</span>
+                                </div>
+                                <div class="review-rating-item">
+                                    <span class="rating-label">Difficulty:</span>
+                                    <span class="rating-value" style="color: var(--accent-color);">${difficultyRating.toFixed(1)}</span>
+                                    <span class="stars">${difficultyStars}</span>
+                                </div>
+                            </div>
+
+                            <div class="review-meta">
+                                <div class="review-meta-item">
+                                    <i class="fas fa-globe"></i>
+                                    <span class="label">Format:</span>
+                                    <span class="value">${review.Is_Online_Class === 'Yes' ? 'Online' : 'In-Person'}</span>
+                                </div>
+                                <div class="review-meta-item">
+                                    <i class="fas fa-certificate"></i>
+                                    <span class="label">For Credit:</span>
+                                    <span class="badge-custom ${review.Is_For_Credit === 'Yes' ? 'badge-success' : 'badge-danger'}">
+                                        ${review.Is_For_Credit === 'Yes' ? 'Yes' : 'No'}
+                                    </span>
+                                </div>
+                                <div class="review-meta-item">
+                                    <i class="fas fa-redo"></i>
+                                    <span class="label">Would Take Again:</span>
+                                    <span class="badge-custom ${review.Would_Take_Again === 'Yes' ? 'badge-success' : 'badge-danger'}">
+                                        ${review.Would_Take_Again === 'Yes' ? 'Yes' : 'No'}
+                                    </span>
+                                </div>
+                                ${review.Grade ? `
+                                <div class="review-meta-item">
+                                    <i class="fas fa-trophy"></i>
+                                    <span class="label">Grade:</span>
+                                    <span class="badge-custom badge-info">${review.Grade}</span>
+                                </div>
+                                ` : ''}
+                                ${review.Textbook_Use !== undefined && review.Textbook_Use !== null && review.Textbook_Use !== -1 ? `
+                                <div class="review-meta-item">
+                                    <i class="fas fa-book-open"></i>
+                                    <span class="label">Textbook Use:</span>
+                                    <span class="value">${getTextbookUseText(review.Textbook_Use)}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="review-comment">
+                                <i class="fas fa-comment-dots" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
+                                ${review.Comment || 'No comment'}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                reviewsHtml = '<p class="text-muted"><i class="fas fa-info-circle"></i> No reviews yet</p>';
+            }
+
+            return `
+                <div class="professor-card">
+                    <div class="professor-header">
+                        <div>
+                            <div class="professor-name">${prof.Full_Name || 'Unknown'}</div>
+                            <span class="department-badge">${prof.Department || 'Unknown Department'}</span>
+                            ${prof.School === 'ucsd' ? '<span class="school-badge ucsd">UC San Diego</span>' : (prof.School === 'deanza' ? '<span class="school-badge deanza">De Anza</span>' : '')}
+                        </div>
+                    </div>
+                    <div class="rating-info">
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${rating.toFixed(1)}</div>
+                                <div class="stars">${stars}</div>
+                                <div class="rating-label">Avg Rating</div>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${difficulty.toFixed(1)}</div>
+                                <div class="rating-label">Difficulty</div>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${prof.Num_Ratings || 0}</div>
+                                <div class="rating-label">Reviews</div>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <div>
+                                <div class="rating-value">${prof.Would_Take_Again_Percent || '0.00'}%</div>
+                                <div class="rating-label">Would Take Again</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h6 style="color: var(--primary-color); margin-bottom: 1rem;">
+                            <i class="fas fa-comments"></i> Latest Reviews (${prof.Latest_Reviews ? Math.min(prof.Latest_Reviews.length, 5) : 0}):
+                        </h6>
+                        ${reviewsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createPagination(currentPage, totalPages) {
+            const paginationDiv = document.getElementById('paginationDiv');
+            let html = '<nav><ul class="pagination">';
+
+            // Previous button
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="searchProfessors(${currentPage - 1}); return false;">Previous</a>
+            </li>`;
+
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="searchProfessors(1); return false;">1</a></li>`;
+                if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="searchProfessors(${i}); return false;">${i}</a>
+                </li>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="searchProfessors(${totalPages}); return false;">${totalPages}</a></li>`;
+            }
+
+            // Next button
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="searchProfessors(${currentPage + 1}); return false;">Next</a>
+            </li>`;
+
+            html += '</ul></nav>';
+            paginationDiv.innerHTML = html;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown Date';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function getTextbookUseText(value) {
+            if (value === -1 || value === null || value === undefined) return 'Not specified';
+            const levels = ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'];
+            return levels[value] || `Level ${value}`;
+        }
+
+        function showHome() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('departmentSelect').value = '';
+            document.getElementById('minRating').value = '';
+            document.getElementById('maxDifficulty').value = '';
+            searchProfessors(1);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('departmentSelect').value = '';
+            document.getElementById('minRating').value = '';
+            document.getElementById('maxDifficulty').value = '';
+            searchProfessors(1);
+        }
+
+        // Enter key to search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchProfessors(1);
+            }
+        });
+    </script>
+</body>
+</html>
