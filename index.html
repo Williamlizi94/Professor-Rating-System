@@ -200,6 +200,7 @@
             display: flex;
             gap: 1.5rem;
             margin-bottom: 0.75rem;
+            flex-wrap: wrap;
         }
 
         .review-rating-item {
@@ -333,8 +334,15 @@
         .school-btn-group .btn {
             border-radius: 0;
         }
-        .school-btn-group .btn:first-child { border-radius: 25px 0 0 25px; }
-        .school-btn-group .btn:last-child  { border-radius: 0 25px 25px 0; }
+
+        .school-btn-group .btn:first-child {
+            border-radius: 25px 0 0 25px;
+        }
+
+        .school-btn-group .btn:last-child {
+            border-radius: 0 25px 25px 0;
+        }
+
         .school-badge {
             display: inline-block;
             font-size: 0.75rem;
@@ -344,15 +352,44 @@
             vertical-align: middle;
             font-weight: 600;
         }
-        .school-badge.deanza { background: #d4edda; color: #155724; }
-        .school-badge.ucsd   { background: #cce5ff; color: #004085; }
+
+        .school-badge.deanza {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .school-badge.ucsd {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+
+            .search-card {
+                padding: 1.25rem;
+            }
+
+            .school-btn-group {
+                flex-direction: column;
+            }
+
+            .school-btn-group .btn,
+            .school-btn-group .btn:first-child,
+            .school-btn-group .btn:last-child {
+                border-radius: 8px;
+                margin-bottom: 0.25rem;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
+            <a class="navbar-brand fw-bold" href="#" onclick="showHome(); return false;">
                 <i class="fas fa-university text-primary"></i> College Professors
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -363,11 +400,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="showHome(); return false;">
                             <i class="fas fa-home"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/docs" target="_blank">
-                            <i class="fas fa-code"></i> API Docs
                         </a>
                     </li>
                 </ul>
@@ -396,6 +428,7 @@
                     <button type="button" class="btn btn-outline-primary" id="btn-ucsd" onclick="setSchool('ucsd')">UC San Diego</button>
                 </div>
             </div>
+
             <div class="row">
                 <div class="col-md-6">
                     <div class="filter-group">
@@ -416,6 +449,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="row">
                 <div class="col-md-6">
                     <div class="filter-group">
@@ -426,7 +460,7 @@
                     </div>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button class="btn btn-primary btn-search w-100" onclick="searchProfessors()">
+                    <button class="btn btn-primary btn-search w-100" onclick="searchProfessors(1)">
                         <i class="fas fa-search"></i> Search
                     </button>
                 </div>
@@ -481,141 +515,229 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_BASE = 'http://localhost:8000';
+        const DEANZA_JSON = './rmp_deanza_all_professors.json';
+        const UCSD_JSON = './rmp_ucsd_all_professors.json';
+
+        let allProfessors = [];
         let currentPage = 1;
         let currentLimit = 20;
-        let currentFilters = {};
         let currentSchool = '';
 
-        const SCHOOL_LABELS = {
-            '': 'All Schools',
-            'deanza': 'De Anza College',
-            'ucsd': 'UC San Diego'
-        };
         const HERO_SUBTITLES = {
             '': 'Find and view ratings and reviews from De Anza College &amp; UC San Diego',
             'deanza': 'Find and view ratings and reviews of De Anza College professors',
             'ucsd': 'Find and view ratings and reviews of UC San Diego professors'
         };
 
+        window.onload = async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const schoolFromUrl = urlParams.get('school') || '';
+            const deptFromUrl = urlParams.get('department') || '';
+
+            if (schoolFromUrl === 'deanza' || schoolFromUrl === 'ucsd') {
+                currentSchool = schoolFromUrl;
+            }
+
+            if (deptFromUrl) {
+                window._pendingDept = deptFromUrl;
+            }
+
+            updateSchoolButtons();
+            document.getElementById('heroSubtitle').innerHTML = HERO_SUBTITLES[currentSchool];
+
+            document.getElementById('loadingDiv').style.display = 'block';
+            await loadLocalData();
+            document.getElementById('loadingDiv').style.display = 'none';
+
+            loadDepartments();
+            loadStats();
+            searchProfessors(1);
+        };
+
+        async function loadLocalData() {
+            try {
+                const [deanzaResponse, ucsdResponse] = await Promise.all([
+                    fetch(DEANZA_JSON),
+                    fetch(UCSD_JSON)
+                ]);
+
+                if (!deanzaResponse.ok) {
+                    throw new Error(`Could not load ${DEANZA_JSON}`);
+                }
+
+                if (!ucsdResponse.ok) {
+                    throw new Error(`Could not load ${UCSD_JSON}`);
+                }
+
+                const deanzaData = await deanzaResponse.json();
+                const ucsdData = await ucsdResponse.json();
+
+                const deanzaProfessors = normalizeData(deanzaData);
+                const ucsdProfessors = normalizeData(ucsdData);
+
+                allProfessors = [
+                    ...deanzaProfessors.map(p => ({ ...p, School: 'deanza' })),
+                    ...ucsdProfessors.map(p => ({ ...p, School: 'ucsd' }))
+                ];
+            } catch (error) {
+                console.error('Error loading local JSON data:', error);
+                allProfessors = [];
+                document.getElementById('resultsDiv').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading data. Please make sure both JSON files are in the same folder as index.html.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function normalizeData(data) {
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            if (Array.isArray(data.data)) {
+                return data.data;
+            }
+
+            if (Array.isArray(data.professors)) {
+                return data.professors;
+            }
+
+            return [];
+        }
+
+        function getFilteredProfessors() {
+            let filtered = [...allProfessors];
+
+            if (currentSchool) {
+                filtered = filtered.filter(prof => prof.School === currentSchool);
+            }
+
+            return filtered;
+        }
+
         function setSchool(school) {
             currentSchool = school;
-            ['all', 'deanza', 'ucsd'].forEach(s => {
-                const id = 'btn-' + (s === '' ? 'all' : s);
-                const btn = document.getElementById(id === 'btn-' ? 'btn-all' : id);
-                if (btn) btn.className = btn.className.replace(/btn-primary|btn-outline-primary/g, '');
-            });
-            document.getElementById('btn-all').className    = 'btn ' + (school === ''       ? 'btn-primary active' : 'btn-outline-primary');
-            document.getElementById('btn-deanza').className = 'btn ' + (school === 'deanza' ? 'btn-primary active' : 'btn-outline-primary');
-            document.getElementById('btn-ucsd').className   = 'btn ' + (school === 'ucsd'   ? 'btn-primary active' : 'btn-outline-primary');
+            updateSchoolButtons();
             document.getElementById('heroSubtitle').innerHTML = HERO_SUBTITLES[school];
-            // Reload department list (clear + repopulate)
-            const sel = document.getElementById('departmentSelect');
-            sel.innerHTML = '<option value="">All Departments</option>';
+
+            const select = document.getElementById('departmentSelect');
+            select.innerHTML = '<option value="">All Departments</option>';
+
             loadDepartments();
             loadStats();
             searchProfessors(1);
         }
 
-        function schoolParam() {
-            return currentSchool ? `&school=${currentSchool}` : '';
+        function updateSchoolButtons() {
+            document.getElementById('btn-all').className = 'btn ' + (currentSchool === '' ? 'btn-primary active' : 'btn-outline-primary');
+            document.getElementById('btn-deanza').className = 'btn ' + (currentSchool === 'deanza' ? 'btn-primary active' : 'btn-outline-primary');
+            document.getElementById('btn-ucsd').className = 'btn ' + (currentSchool === 'ucsd' ? 'btn-primary active' : 'btn-outline-primary');
         }
 
-        // Load departments on page load
-        window.onload = function() {
-            // Check for school param in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const schoolFromUrl = urlParams.get('school') || '';
-            const deptFromUrl = urlParams.get('department') || '';
-            if (schoolFromUrl) {
-                currentSchool = schoolFromUrl;
-                document.getElementById('btn-all').className    = 'btn ' + (schoolFromUrl === ''       ? 'btn-primary active' : 'btn-outline-primary');
-                document.getElementById('btn-deanza').className = 'btn ' + (schoolFromUrl === 'deanza' ? 'btn-primary active' : 'btn-outline-primary');
-                document.getElementById('btn-ucsd').className   = 'btn ' + (schoolFromUrl === 'ucsd'   ? 'btn-primary active' : 'btn-outline-primary');
-                document.getElementById('heroSubtitle').innerHTML = HERO_SUBTITLES[schoolFromUrl];
-            }
-            if (deptFromUrl) {
-                // Will be selected after departments load
-                window._pendingDept = deptFromUrl;
-            }
-            loadDepartments();
-            loadStats();
-            searchProfessors();
-        };
+        function loadDepartments() {
+            const select = document.getElementById('departmentSelect');
+            select.innerHTML = '<option value="">All Departments</option>';
 
-        async function loadDepartments() {
-            try {
-                const response = await fetch(`${API_BASE}/departments?format=json${schoolParam()}`);
-                const data = await response.json();
-                const select = document.getElementById('departmentSelect');
-                data.departments.forEach(dept => {
-                    const option = document.createElement('option');
-                    option.value = dept;
-                    option.textContent = dept;
-                    select.appendChild(option);
-                });
-                if (window._pendingDept) {
-                    select.value = window._pendingDept;
-                    window._pendingDept = null;
-                    searchProfessors(1);
-                }
-            } catch (error) {
-                console.error('Error loading departments:', error);
+            const filtered = getFilteredProfessors();
+
+            const departments = [...new Set(
+                filtered
+                    .map(prof => prof.Department)
+                    .filter(Boolean)
+            )].sort();
+
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                select.appendChild(option);
+            });
+
+            if (window._pendingDept) {
+                select.value = window._pendingDept;
+                window._pendingDept = null;
+                searchProfessors(1);
             }
         }
 
-        async function loadStats() {
-            try {
-                const response = await fetch(`${API_BASE}/stats?format=json${schoolParam()}`);
-                const data = await response.json();
-                document.getElementById('totalProfessors').textContent = data.total_professors || 0;
-                document.getElementById('avgRating').textContent = (data.ratings?.average || 0).toFixed(1);
-                document.getElementById('totalReviews').textContent = data.total_reviews || 0;
-                document.getElementById('totalDepartments').textContent = data.departments?.count || 0;
-                document.getElementById('statsSection').style.display = 'flex';
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
+        function loadStats() {
+            const filtered = getFilteredProfessors();
+
+            const totalProfessors = filtered.length;
+
+            const totalReviews = filtered.reduce((sum, prof) => {
+                return sum + (parseInt(prof.Num_Ratings) || 0);
+            }, 0);
+
+            const ratings = filtered
+                .map(prof => parseFloat(prof.Average_Rating))
+                .filter(rating => !isNaN(rating));
+
+            const avgRating = ratings.length
+                ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+                : 0;
+
+            const departments = new Set(
+                filtered
+                    .map(prof => prof.Department)
+                    .filter(Boolean)
+            );
+
+            document.getElementById('totalProfessors').textContent = totalProfessors;
+            document.getElementById('avgRating').textContent = avgRating.toFixed(1);
+            document.getElementById('totalReviews').textContent = totalReviews;
+            document.getElementById('totalDepartments').textContent = departments.size;
+            document.getElementById('statsSection').style.display = 'flex';
         }
 
-        async function searchProfessors(page = 1) {
+        function searchProfessors(page = 1) {
             currentPage = page;
-            const searchQuery = document.getElementById('searchInput').value.trim();
+
+            const searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
             const department = document.getElementById('departmentSelect').value;
-            const minRating = document.getElementById('minRating').value;
-            const maxDifficulty = document.getElementById('maxDifficulty').value;
+            const minRating = parseFloat(document.getElementById('minRating').value);
+            const maxDifficulty = parseFloat(document.getElementById('maxDifficulty').value);
 
             document.getElementById('loadingDiv').style.display = 'block';
             document.getElementById('resultsDiv').innerHTML = '';
             document.getElementById('paginationDiv').style.display = 'none';
 
-            try {
-                let response;
-                if (searchQuery) {
-                    // Use search endpoint
-                    response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=${currentLimit}&format=json${schoolParam()}`);
-                } else {
-                    // Use professors endpoint with filters
-                    let url = `${API_BASE}/professors?page=${page}&limit=${currentLimit}&format=json${schoolParam()}`;
-                    if (department) url += `&department=${encodeURIComponent(department)}`;
-                    if (minRating) url += `&min_rating=${minRating}`;
-                    if (maxDifficulty) url += `&max_difficulty=${maxDifficulty}`;
-                    response = await fetch(url);
-                }
+            let filtered = getFilteredProfessors();
 
-                const data = await response.json();
-                displayResults(data);
-            } catch (error) {
-                console.error('Error searching professors:', error);
-                document.getElementById('resultsDiv').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Error loading data, please try again later</p>
-                    </div>
-                `;
-            } finally {
-                document.getElementById('loadingDiv').style.display = 'none';
+            if (searchQuery) {
+                filtered = filtered.filter(prof =>
+                    (prof.Full_Name || '').toLowerCase().includes(searchQuery) ||
+                    (prof.Department || '').toLowerCase().includes(searchQuery)
+                );
             }
+
+            if (department) {
+                filtered = filtered.filter(prof => prof.Department === department);
+            }
+
+            if (!isNaN(minRating)) {
+                filtered = filtered.filter(prof => (parseFloat(prof.Average_Rating) || 0) >= minRating);
+            }
+
+            if (!isNaN(maxDifficulty)) {
+                filtered = filtered.filter(prof => (parseFloat(prof.Average_Difficulty) || 0) <= maxDifficulty);
+            }
+
+            const total = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(total / currentLimit));
+            const start = (page - 1) * currentLimit;
+            const end = start + currentLimit;
+
+            const data = {
+                data: filtered.slice(start, end),
+                page: page,
+                total_pages: totalPages
+            };
+
+            displayResults(data);
+            document.getElementById('loadingDiv').style.display = 'none';
         }
 
         function displayResults(data) {
@@ -636,9 +758,9 @@
             professors.forEach(prof => {
                 html += createProfessorCard(prof);
             });
+
             resultsDiv.innerHTML = html;
 
-            // Pagination
             if (data.total_pages > 1) {
                 createPagination(data.page, data.total_pages);
                 document.getElementById('paginationDiv').style.display = 'block';
@@ -651,6 +773,7 @@
             const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
 
             let reviewsHtml = '';
+
             if (prof.Latest_Reviews && prof.Latest_Reviews.length > 0) {
                 prof.Latest_Reviews.slice(0, 5).forEach(review => {
                     const qualityRating = parseFloat(review.Quality_Rating) || 0;
@@ -663,7 +786,7 @@
                             <div class="review-header">
                                 <div>
                                     <strong style="font-size: 1.1rem; color: var(--primary-color);">
-                                        <i class="fas fa-book"></i> ${review.Class || 'N/A'}
+                                        <i class="fas fa-book"></i> ${escapeHTML(review.Class || 'N/A')}
                                     </strong>
                                 </div>
                                 <span class="review-date">
@@ -708,7 +831,7 @@
                                 <div class="review-meta-item">
                                     <i class="fas fa-trophy"></i>
                                     <span class="label">Grade:</span>
-                                    <span class="badge-custom badge-info">${review.Grade}</span>
+                                    <span class="badge-custom badge-info">${escapeHTML(review.Grade)}</span>
                                 </div>
                                 ` : ''}
                                 ${review.Textbook_Use !== undefined && review.Textbook_Use !== null && review.Textbook_Use !== -1 ? `
@@ -722,7 +845,7 @@
 
                             <div class="review-comment">
                                 <i class="fas fa-comment-dots" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
-                                ${review.Comment || 'No comment'}
+                                ${escapeHTML(review.Comment || 'No comment')}
                             </div>
                         </div>
                     `;
@@ -735,11 +858,13 @@
                 <div class="professor-card">
                     <div class="professor-header">
                         <div>
-                            <div class="professor-name">${prof.Full_Name || 'Unknown'}</div>
-                            <span class="department-badge">${prof.Department || 'Unknown Department'}</span>
-                            ${prof.School === 'ucsd' ? '<span class="school-badge ucsd">UC San Diego</span>' : (prof.School === 'deanza' ? '<span class="school-badge deanza">De Anza</span>' : '')}
+                            <div class="professor-name">${escapeHTML(prof.Full_Name || 'Unknown')}</div>
+                            <span class="department-badge">${escapeHTML(prof.Department || 'Unknown Department')}</span>
+                            ${prof.School === 'ucsd' ? '<span class="school-badge ucsd">UC San Diego</span>' : ''}
+                            ${prof.School === 'deanza' ? '<span class="school-badge deanza">De Anza</span>' : ''}
                         </div>
                     </div>
+
                     <div class="rating-info">
                         <div class="rating-item">
                             <div>
@@ -748,18 +873,21 @@
                                 <div class="rating-label">Avg Rating</div>
                             </div>
                         </div>
+
                         <div class="rating-item">
                             <div>
                                 <div class="rating-value">${difficulty.toFixed(1)}</div>
                                 <div class="rating-label">Difficulty</div>
                             </div>
                         </div>
+
                         <div class="rating-item">
                             <div>
                                 <div class="rating-value">${prof.Num_Ratings || 0}</div>
                                 <div class="rating-label">Reviews</div>
                             </div>
                         </div>
+
                         <div class="rating-item">
                             <div>
                                 <div class="rating-value">${prof.Would_Take_Again_Percent || '0.00'}%</div>
@@ -767,6 +895,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="mt-4">
                         <h6 style="color: var(--primary-color); margin-bottom: 1rem;">
                             <i class="fas fa-comments"></i> Latest Reviews (${prof.Latest_Reviews ? Math.min(prof.Latest_Reviews.length, 5) : 0}):
@@ -781,18 +910,18 @@
             const paginationDiv = document.getElementById('paginationDiv');
             let html = '<nav><ul class="pagination">';
 
-            // Previous button
             html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
                 <a class="page-link" href="#" onclick="searchProfessors(${currentPage - 1}); return false;">Previous</a>
             </li>`;
 
-            // Page numbers
             const startPage = Math.max(1, currentPage - 2);
             const endPage = Math.min(totalPages, currentPage + 2);
 
             if (startPage > 1) {
                 html += `<li class="page-item"><a class="page-link" href="#" onclick="searchProfessors(1); return false;">1</a></li>`;
-                if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                if (startPage > 2) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
             }
 
             for (let i = startPage; i <= endPage; i++) {
@@ -802,11 +931,12 @@
             }
 
             if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                if (endPage < totalPages - 1) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
                 html += `<li class="page-item"><a class="page-link" href="#" onclick="searchProfessors(${totalPages}); return false;">${totalPages}</a></li>`;
             }
 
-            // Next button
             html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
                 <a class="page-link" href="#" onclick="searchProfessors(${currentPage + 1}); return false;">Next</a>
             </li>`;
@@ -817,8 +947,13 @@
 
         function formatDate(dateString) {
             if (!dateString) return 'Unknown Date';
+
             try {
                 const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return dateString;
+                }
+
                 return date.toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -830,16 +965,26 @@
         }
 
         function getTextbookUseText(value) {
-            if (value === -1 || value === null || value === undefined) return 'Not specified';
+            if (value === -1 || value === null || value === undefined) {
+                return 'Not specified';
+            }
+
             const levels = ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'];
             return levels[value] || `Level ${value}`;
         }
 
         function showHome() {
+            currentSchool = '';
+            updateSchoolButtons();
+
+            document.getElementById('heroSubtitle').innerHTML = HERO_SUBTITLES[currentSchool];
             document.getElementById('searchInput').value = '';
             document.getElementById('departmentSelect').value = '';
             document.getElementById('minRating').value = '';
             document.getElementById('maxDifficulty').value = '';
+
+            loadDepartments();
+            loadStats();
             searchProfessors(1);
         }
 
@@ -848,10 +993,19 @@
             document.getElementById('departmentSelect').value = '';
             document.getElementById('minRating').value = '';
             document.getElementById('maxDifficulty').value = '';
+
             searchProfessors(1);
         }
 
-        // Enter key to search
+        function escapeHTML(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchProfessors(1);
