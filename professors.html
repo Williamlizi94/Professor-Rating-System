@@ -45,14 +45,6 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .filter-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 2rem;
-        }
-
         .professor-card {
             background: white;
             border-radius: 15px;
@@ -233,6 +225,7 @@
             color: #666;
             margin-top: 0.5rem;
         }
+
         .school-badge {
             display: inline-block;
             font-size: 0.75rem;
@@ -242,15 +235,34 @@
             vertical-align: middle;
             font-weight: 600;
         }
-        .school-badge.deanza { background: #d4edda; color: #155724; }
-        .school-badge.ucsd   { background: #cce5ff; color: #004085; }
+
+        .school-badge.deanza {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .school-badge.ucsd {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
+            <a class="navbar-brand fw-bold" href="index.html">
                 <i class="fas fa-university text-primary"></i> College Professors
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -259,23 +271,18 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
+                        <a class="nav-link" href="index.html">
                             <i class="fas fa-home"></i> Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/departments">
+                        <a class="nav-link" href="departments.html">
                             <i class="fas fa-building"></i> Departments
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/stats">
+                        <a class="nav-link" href="stats.html">
                             <i class="fas fa-chart-bar"></i> Statistics
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/docs" target="_blank">
-                            <i class="fas fa-code"></i> API Docs
                         </a>
                     </li>
                 </ul>
@@ -316,105 +323,147 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_BASE = '';
+        const DEANZA_JSON = './rmp_deanza_all_professors.json';
+        const UCSD_JSON = './rmp_ucsd_all_professors.json';
+
+        let allProfessors = [];
         let currentPage = 1;
         let currentLimit = 20;
 
-        // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const schoolParam = urlParams.get('school') ? `&school=${urlParams.get('school')}` : '';
-        const pageType = getPageType();
-        const nameParam = urlParams.get('name');
-        const departmentParam = urlParams.get('department');
-        const searchParam = urlParams.get('q');
 
-        function getPageType() {
-            const path = window.location.pathname;
-            if (path.includes('/professors/name/')) return 'name';
-            if (path.includes('/professors/department/')) return 'department';
-            if (path.includes('/search')) return 'search';
-            return 'list';
-        }
+        const schoolValue = urlParams.get('school') || '';
+        const nameParam = urlParams.get('name') || '';
+        const departmentParam = urlParams.get('department') || '';
+        const searchParam = urlParams.get('q') || '';
+        const minRatingParam = urlParams.get('min_rating') || '';
+        const maxDifficultyParam = urlParams.get('max_difficulty') || '';
 
-        function getProfessorName() {
-            const path = window.location.pathname;
-            const match = path.match(/\/professors\/name\/(.+)$/);
-            if (match) {
-                try {
-                    return decodeURIComponent(match[1].replace(/\+/g, ' '));
-                } catch (e) {
-                    return match[1];
+        window.onload = async function() {
+            await loadLocalData();
+            loadProfessors(1);
+        };
+
+        async function loadLocalData() {
+            try {
+                const [deanzaResponse, ucsdResponse] = await Promise.all([
+                    fetch(DEANZA_JSON),
+                    fetch(UCSD_JSON)
+                ]);
+
+                if (!deanzaResponse.ok) {
+                    throw new Error(`Could not load ${DEANZA_JSON}`);
                 }
-            }
-            return null;
-        }
 
-        function getDepartmentName() {
-            const path = window.location.pathname;
-            const match = path.match(/\/professors\/department\/(.+)$/);
-            if (match) {
-                try {
-                    return decodeURIComponent(match[1].replace(/\+/g, ' '));
-                } catch (e) {
-                    return match[1];
+                if (!ucsdResponse.ok) {
+                    throw new Error(`Could not load ${UCSD_JSON}`);
                 }
+
+                const deanzaData = await deanzaResponse.json();
+                const ucsdData = await ucsdResponse.json();
+
+                const deanzaProfessors = normalizeData(deanzaData);
+                const ucsdProfessors = normalizeData(ucsdData);
+
+                allProfessors = [
+                    ...deanzaProfessors.map(p => ({ ...p, School: 'deanza' })),
+                    ...ucsdProfessors.map(p => ({ ...p, School: 'ucsd' }))
+                ];
+            } catch (error) {
+                console.error('Error loading local JSON data:', error);
+                document.getElementById('loadingDiv').style.display = 'none';
+                document.getElementById('resultsDiv').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading data. Please make sure both JSON files are in the same folder as professors.html.</p>
+                    </div>
+                `;
             }
-            return null;
         }
 
-        async function loadProfessors(page = 1) {
+        function normalizeData(data) {
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            if (Array.isArray(data.data)) {
+                return data.data;
+            }
+
+            if (Array.isArray(data.professors)) {
+                return data.professors;
+            }
+
+            return [];
+        }
+
+        function loadProfessors(page = 1) {
             currentPage = page;
+
             document.getElementById('loadingDiv').style.display = 'block';
             document.getElementById('resultsDiv').innerHTML = '';
             document.getElementById('paginationDiv').style.display = 'none';
             document.getElementById('infoBadge').style.display = 'none';
 
-            try {
-                let url = '';
-                let subtitle = '';
+            let filtered = [...allProfessors];
+            let subtitle = 'All Professors';
 
-                if (pageType === 'name') {
-                    const name = getProfessorName();
-                    url = `${API_BASE}/professors/name/${encodeURIComponent(name)}?format=json${schoolParam}`;
-                    subtitle = `Search: ${name}`;
-                } else if (pageType === 'department') {
-                    const dept = getDepartmentName();
-                    url = `${API_BASE}/professors/department/${encodeURIComponent(dept)}?format=json&page=${page}&limit=${currentLimit}${schoolParam}`;
-                    subtitle = `Department: ${dept}`;
-                } else if (pageType === 'search') {
-                    const query = searchParam || urlParams.get('q') || '';
-                    url = `${API_BASE}/search?q=${encodeURIComponent(query)}&page=${page}&limit=${currentLimit}&format=json${schoolParam}`;
-                    subtitle = `Search: ${query}`;
-                } else {
-                    const dept = departmentParam || '';
-                    const minRating = urlParams.get('min_rating') || '';
-                    const maxDifficulty = urlParams.get('max_difficulty') || '';
-                    url = `${API_BASE}/professors?page=${page}&limit=${currentLimit}&format=json${schoolParam}`;
-                    if (dept) url += `&department=${encodeURIComponent(dept)}`;
-                    if (minRating) url += `&min_rating=${minRating}`;
-                    if (maxDifficulty) url += `&max_difficulty=${maxDifficulty}`;
-                    subtitle = 'All Professors';
-                }
-
-                if (subtitle) {
-                    document.getElementById('pageSubtitle').textContent = subtitle;
-                }
-
-                const response = await fetch(url);
-                const data = await response.json();
-
-                displayResults(data);
-            } catch (error) {
-                console.error('Error loading professors:', error);
-                document.getElementById('resultsDiv').innerHTML = `
-                    <div class="empty-state" style="text-align: center; padding: 3rem; color: white;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                        <p>Error loading data, please try again later</p>
-                    </div>
-                `;
-            } finally {
-                document.getElementById('loadingDiv').style.display = 'none';
+            if (schoolValue === 'deanza' || schoolValue === 'ucsd') {
+                filtered = filtered.filter(prof => prof.School === schoolValue);
+                subtitle = schoolValue === 'deanza' ? 'De Anza College Professors' : 'UC San Diego Professors';
             }
+
+            if (nameParam) {
+                const nameQuery = nameParam.toLowerCase();
+                filtered = filtered.filter(prof =>
+                    (prof.Full_Name || '').toLowerCase().includes(nameQuery)
+                );
+                subtitle = `Search: ${nameParam}`;
+            }
+
+            if (departmentParam) {
+                filtered = filtered.filter(prof =>
+                    (prof.Department || '') === departmentParam
+                );
+                subtitle = `Department: ${departmentParam}`;
+            }
+
+            if (searchParam) {
+                const searchQuery = searchParam.toLowerCase();
+                filtered = filtered.filter(prof =>
+                    (prof.Full_Name || '').toLowerCase().includes(searchQuery) ||
+                    (prof.Department || '').toLowerCase().includes(searchQuery)
+                );
+                subtitle = `Search: ${searchParam}`;
+            }
+
+            const minRating = parseFloat(minRatingParam);
+            if (!isNaN(minRating)) {
+                filtered = filtered.filter(prof => (parseFloat(prof.Average_Rating) || 0) >= minRating);
+            }
+
+            const maxDifficulty = parseFloat(maxDifficultyParam);
+            if (!isNaN(maxDifficulty)) {
+                filtered = filtered.filter(prof => (parseFloat(prof.Average_Difficulty) || 0) <= maxDifficulty);
+            }
+
+            document.getElementById('pageSubtitle').textContent = subtitle;
+
+            const total = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(total / currentLimit));
+            const start = (page - 1) * currentLimit;
+            const end = start + currentLimit;
+
+            const data = {
+                data: filtered.slice(start, end),
+                total: total,
+                page: page,
+                total_pages: totalPages
+            };
+
+            displayResults(data);
+
+            document.getElementById('loadingDiv').style.display = 'none';
         }
 
         function displayResults(data) {
@@ -423,27 +472,28 @@
 
             if (professors.length === 0) {
                 resultsDiv.innerHTML = `
-                    <div class="empty-state" style="text-align: center; padding: 3rem; color: white;">
-                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
                         <p>No matching professors found</p>
                     </div>
                 `;
                 return;
             }
 
-            // Update info badge
             const total = data.total || professors.length;
+
             document.getElementById('totalCount').textContent = total;
             document.getElementById('infoLabel').textContent = `Found ${total} professors`;
             document.getElementById('infoBadge').style.display = 'block';
 
             let html = '';
+
             professors.forEach(prof => {
                 html += createProfessorCard(prof);
             });
+
             resultsDiv.innerHTML = html;
 
-            // Pagination
             if (data.total_pages > 1) {
                 createPagination(data.page, data.total_pages);
                 document.getElementById('paginationDiv').style.display = 'block';
@@ -456,6 +506,7 @@
             const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
 
             let reviewsHtml = '';
+
             if (prof.Latest_Reviews && prof.Latest_Reviews.length > 0) {
                 prof.Latest_Reviews.slice(0, 5).forEach(review => {
                     const qualityRating = parseFloat(review.Quality_Rating) || 0;
@@ -468,7 +519,7 @@
                             <div class="review-header">
                                 <div>
                                     <strong style="font-size: 1.1rem; color: var(--primary-color);">
-                                        <i class="fas fa-book"></i> ${review.Class || 'N/A'}
+                                        <i class="fas fa-book"></i> ${escapeHTML(review.Class || 'N/A')}
                                     </strong>
                                 </div>
                                 <span class="review-date">
@@ -502,14 +553,14 @@
                                 ${review.Grade ? `
                                 <div class="review-meta-item">
                                     <i class="fas fa-trophy"></i>
-                                    <span class="badge-custom badge-info">${review.Grade}</span>
+                                    <span class="badge-custom badge-info">${escapeHTML(review.Grade)}</span>
                                 </div>
                                 ` : ''}
                             </div>
 
                             <div class="review-comment">
                                 <i class="fas fa-comment-dots" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
-                                ${review.Comment || 'No comment'}
+                                ${escapeHTML(review.Comment || 'No comment')}
                             </div>
                         </div>
                     `;
@@ -522,11 +573,13 @@
                 <div class="professor-card">
                     <div class="professor-header">
                         <div>
-                            <div class="professor-name">${prof.Full_Name || 'Unknown'}</div>
-                            <span class="department-badge">${prof.Department || 'Unknown Department'}</span>
-                            ${prof.School === 'ucsd' ? '<span class="school-badge ucsd">UC San Diego</span>' : (prof.School === 'deanza' ? '<span class="school-badge deanza">De Anza</span>' : '')}
+                            <div class="professor-name">${escapeHTML(prof.Full_Name || 'Unknown')}</div>
+                            <span class="department-badge">${escapeHTML(prof.Department || 'Unknown Department')}</span>
+                            ${prof.School === 'ucsd' ? '<span class="school-badge ucsd">UC San Diego</span>' : ''}
+                            ${prof.School === 'deanza' ? '<span class="school-badge deanza">De Anza</span>' : ''}
                         </div>
                     </div>
+
                     <div class="rating-info">
                         <div class="rating-item">
                             <div>
@@ -535,18 +588,21 @@
                                 <div class="rating-label">Avg Rating</div>
                             </div>
                         </div>
+
                         <div class="rating-item">
                             <div>
                                 <div class="rating-value">${difficulty.toFixed(1)}</div>
                                 <div class="rating-label">Difficulty</div>
                             </div>
                         </div>
+
                         <div class="rating-item">
                             <div>
                                 <div class="rating-value">${prof.Num_Ratings || 0}</div>
                                 <div class="rating-label">Reviews</div>
                             </div>
                         </div>
+
                         <div class="rating-item">
                             <div>
                                 <div class="rating-value">${prof.Would_Take_Again_Percent || '0.00'}%</div>
@@ -554,6 +610,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="mt-4">
                         <h6 style="color: var(--primary-color); margin-bottom: 1rem;">
                             <i class="fas fa-comments"></i> Latest Reviews (${prof.Latest_Reviews ? Math.min(prof.Latest_Reviews.length, 5) : 0}):
@@ -577,7 +634,9 @@
 
             if (startPage > 1) {
                 html += `<li class="page-item"><a class="page-link" href="#" onclick="loadProfessors(1); return false;">1</a></li>`;
-                if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                if (startPage > 2) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
             }
 
             for (let i = startPage; i <= endPage; i++) {
@@ -587,7 +646,9 @@
             }
 
             if (endPage < totalPages) {
-                if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                if (endPage < totalPages - 1) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
                 html += `<li class="page-item"><a class="page-link" href="#" onclick="loadProfessors(${totalPages}); return false;">${totalPages}</a></li>`;
             }
 
@@ -600,9 +661,17 @@
         }
 
         function formatDate(dateString) {
-            if (!dateString) return 'Unknown Date';
+            if (!dateString) {
+                return 'Unknown Date';
+            }
+
             try {
                 const date = new Date(dateString);
+
+                if (isNaN(date.getTime())) {
+                    return dateString;
+                }
+
                 return date.toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -613,9 +682,14 @@
             }
         }
 
-        window.onload = function() {
-            loadProfessors(1);
-        };
+        function escapeHTML(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
     </script>
 </body>
 </html>
