@@ -1,43 +1,53 @@
-# Professor Rating System
+# 🎓 Professor Rating System
 
-A clean and interactive professor rating website for students to search, filter, and compare professor information from **De Anza College** and **UC San Diego**.
+A clean and interactive professor rating website that helps students search, filter, and compare professor information from **De Anza College** and **UC San Diego**.
 
-Live Demo:
+🌐 **Live Demo:**
 https://williamlizi94.github.io/Professor-Rating-System/
 
-## Overview
+---
 
-Professor Rating System is a front-end web project that helps students quickly browse professor ratings, departments, difficulty levels, and recent student reviews. The goal of this project is to make professor information easier to access and compare in one simple interface.
+## 🚀 Overview
 
-The website is built as a static GitHub Pages project using HTML, CSS, JavaScript, Bootstrap, and JSON data. It does not require a backend server, so users can access it directly through the browser.
+**Professor Rating System** is a front-end web application designed to help students quickly browse professor ratings, departments, difficulty levels, and recent student reviews.
 
-## Features
+The goal of this project is to make professor information easier to access and compare in one simple interface. Instead of relying on a backend server, the website uses static JSON data and is fully deployed through **GitHub Pages**.
 
-* Search professors by name or department
-* Filter professors by school: All Schools, De Anza College, or UC San Diego
-* Filter by minimum rating and maximum difficulty
-* Browse departments from both schools
-* View professor details including:
+---
 
+## ✨ Features
+
+* 🔍 Search professors by name or department
+* 🏫 Filter professors by school: De Anza College or UC San Diego
+* ⭐ Filter by minimum rating
+* 📊 Filter by maximum difficulty
+* 🏢 Browse departments from both schools
+* 💬 View recent student reviews and comments
+* 📈 View statistics such as:
+
+  * Total professors
+  * Total reviews
   * Average rating
-  * Average difficulty
-  * Number of reviews
-  * Would-take-again percentage
-  * Recent student comments
-* View statistics such as total professors, total reviews, average rating, and top departments
-* Fully deployed using GitHub Pages
+  * Department count
+  * Top departments
+* 🌐 Fully deployed with GitHub Pages
 
-## Tech Stack
+---
 
-* HTML
-* CSS
-* JavaScript
-* Bootstrap
-* Font Awesome
-* JSON
-* GitHub Pages
+## 🛠️ Tech Stack
 
-## Pages
+<p>
+  <img src="https://img.shields.io/badge/HTML-E34F26?style=for-the-badge&logo=html5&logoColor=white" />
+  <img src="https://img.shields.io/badge/CSS-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
+  <img src="https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" />
+  <img src="https://img.shields.io/badge/Font%20Awesome-538DD7?style=for-the-badge&logo=fontawesome&logoColor=white" />
+  <img src="https://img.shields.io/badge/JSON-000000?style=for-the-badge&logo=json&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitHub%20Pages-222222?style=for-the-badge&logo=github&logoColor=white" />
+</p>
+---
+
+## 📄 Pages
 
 | Page               | Description                                      |
 | ------------------ | ------------------------------------------------ |
@@ -46,7 +56,9 @@ The website is built as a static GitHub Pages project using HTML, CSS, JavaScrip
 | `professors.html`  | View professor list and filtered results         |
 | `stats.html`       | View overall professor and department statistics |
 
-## Project Structure
+---
+
+## 📁 Project Structure
 
 ```text
 Professor-Rating-System/
@@ -59,22 +71,28 @@ Professor-Rating-System/
 └── README.md
 ```
 
-## What I Learned
+---
+
+## 🧠 What I Learned
 
 While building this project, I practiced turning raw data into a usable web application. I also learned how to debug real deployment issues, including GitHub Pages routing problems, static file paths, browser caching, and replacing local API calls with static JSON data.
 
 This project helped me better understand how front-end applications work after deployment, not just on localhost. It also improved my skills in JavaScript data filtering, DOM manipulation, responsive design, and practical debugging.
 
-## Future Improvements
+---
+
+## 🔮 Future Improvements
 
 * Add professor detail pages
 * Improve mobile layout
 * Add sorting by rating, difficulty, and number of reviews
 * Add charts for department-level statistics
 * Add dark mode
-* Improve data loading performance for large JSON files
+* Improve loading performance for large JSON files
 
-## Author
+---
+
+## 👤 Author
 
 **William Lizi**
 Computer Science Student at UC San Diego
